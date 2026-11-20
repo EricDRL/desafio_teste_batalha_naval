@@ -121,6 +121,19 @@ public class BatalhaNaval {
         for (int[] v : vizinhas) alvos.addLast(v);
     }
 
+    /** Apos afundar um navio, mantem so os alvos vizinhos de acertos em navios ainda vivos. */
+    static void limparAlvosDoAfundado(Tabuleiro alvo) {
+        int[][] d = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        alvos.removeIf(p -> {
+            for (int[] x : d) {
+                int rr = p[0] + x[0], cc = p[1] + x[1];
+                if (rr >= 0 && rr < N && cc >= 0 && cc < N && alvo.tiro[rr][cc]
+                        && alvo.id[rr][cc] != -1 && alvo.restante[alvo.id[rr][cc]] > 0) return false;
+            }
+            return true;
+        });
+    }
+
     // ===================== Main =====================
     public static void main(String[] args) {
         System.out.println("=====================================");
@@ -132,7 +145,8 @@ public class BatalhaNaval {
         while (continuar) {
             if (!jogar()) break; // jogador digitou 'sair'
             System.out.print("\nJogar novamente? (s/n): ");
-            continuar = ler().startsWith("s");
+            String resp = ler();
+            continuar = resp.equals("s") || resp.equals("sim");
         }
         System.out.println("\nAte a proxima!");
     }
@@ -200,7 +214,7 @@ public class BatalhaNaval {
             if (r2 == 0) {
                 adicionarVizinhas(eu, t[0], t[1]);
             } else if (r2 == 1) {
-                alvos.clear();
+                limparAlvosDoAfundado(eu);
             }
             if (eu.derrotado()) {
                 desenhar(eu, pc);
@@ -316,12 +330,9 @@ public class BatalhaNaval {
     static int[] lerCoordenada(String s) {
         if (s.length() < 2 || s.length() > 3) return null;
         int c = s.charAt(0) - 'a';
-        int r;
-        try {
-            r = Integer.parseInt(s.substring(1)) - 1;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        String num = s.substring(1);
+        if (!num.matches("[1-9][0-9]?")) return null;
+        int r = Integer.parseInt(num) - 1;
         if (r < 0 || r >= N || c < 0 || c >= N) return null;
         return new int[]{r, c};
     }
